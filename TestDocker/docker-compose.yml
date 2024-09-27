@@ -1,0 +1,43 @@
+
+
+services:
+  nginx:
+    image: "nginx"
+    
+
+  rcache:
+    image: "redis"
+
+
+    
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    depends_on:
+      - rabbitmq  # This ensures RabbitMQ starts before the Django app
+    
+
+  rabbitmq:
+    image: rabbitmq:3-management # Official RabbitMQ image with management UI
+    ports:
+      - "5672:5672"  # Default port for RabbitMQ
+      - "15672:15672"  # Management UI port
+    environment:
+      RABBITMQ_DEFAULT_USER: myuser  # Set RabbitMQ default user
+      RABBITMQ_DEFAULT_PASS: mypassword  # Set RabbitMQ default password
+    
+
+  
+
+  celery:
+    build: .
+    command: celery -A TestDocker worker --loglevel=info
+    volumes:
+      - .:/code
+    depends_on:
+      - rabbitmq
+ 
